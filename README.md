@@ -1,73 +1,229 @@
-# Welcome to your Lovable project
+# MediSpark
 
-## Project info
+Offline-first, local-language healthcare for rural communities. Works on low-cost Android smartphones and feature phones, runs even with poor or no internet, and keeps patient data secure on-device.
 
-**URL**: https://lovable.dev/projects/3f412903-4ade-4ff4-8c07-5544afe0a8f6
+[![Offline First](https://img.shields.io/badge/Offline-first-blue)](#)
+[![Local Language](https://img.shields.io/badge/Local%20Language-Hindi%2C%20Tamil%2C%20more-9cf)](#)
+[![Android](https://img.shields.io/badge/Platform-Android-green)](#)
+[![SMS](https://img.shields.io/badge/Channel-SMS%20supported-orange)](#)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Table of contents
 
-**Use Lovable**
+- What is MediSpark?
+- Features
+- Tech stack
+- Architecture overview
+- Getting started
+- SMS setup
+- Data security and privacy
+- Repository structure (suggested)
+- Roadmap
+- Contributing
+- Medical disclaimer
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3f412903-4ade-4ff4-8c07-5544afe0a8f6) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## What is MediSpark?
 
-**Use your preferred IDE**
+MediSpark addresses rural health challenges with a unified mobile platform that integrates essential healthcare tools, operates offline, and supports local languages. Designed for rural citizens, community health workers (CHWs), doctors, and medical store/clinic managers.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+With MediSpark you can:
+- Check symptoms and receive timely assistance, even without internet connectivity.
+- Prioritize patients by severity and access CHW training resources offline.
+- Connect villagers with urban-based doctors through real-time translation.
+- Track health records and manage chronic diseases via SMS reminders.
+- Predict disease outbreaks and optimize medicine inventory.
+- Share preventive health tips and collect community feedback.
+- Secure patient data locally on the device and sync when connectivity is available.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## Features
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Symptom Checker: AI suggests illnesses from voice/text inputs in local languages (e.g., Hindi/Tamil), enabling early detection offline.
+- Patient Triage: AI prioritizes patients by condition severity, optimizing CHW resource allocation.
+- Telemedicine with Translation: AI translates symptoms in local languages for remote doctor consultations.
+- Electronic Health Records (EHR): Securely stores patient data offline for CHW/doctor access.
+- Chronic Disease Monitoring: SMS updates/reminders for conditions like diabetes, ensuring offline management.
+- CHW Training: Localized offline modules with badges to enhance CHW skills.
+- Outbreak Prediction: AI analyzes data (e.g., fever cases) to predict outbreaks and alert providers.
+- Medicine Inventory Optimization: AI forecasts medication demand for rural clinics.
+- Preventive Care Tips: SMS-based health tips in local languages to promote wellness.
+- Mental Health Feedback & Chatbot: Users report concerns/emotions; AI delivers 1‑min mindfulness audio (e.g., “Imagine a calm village river”) and CBT exercises (e.g., “List a positive thought”) in Hindi/Tamil, offline, with SMS support for feature phones, aiming to reduce stress for women/youth.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+---
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Tech stack
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+- Frontend (App Interface)
+  - React Native: Android app with simple UI, large buttons, and voice input.
+  - Text-to-Speech / Speech-to-Text: Google TTS or IndicTTS for Hindi, Tamil, and more.
+
+- Backend (On‑Phone Processing)
+  - Python with Pyodide: Runs AI models and logic locally (no internet needed).
+  - SQLite: Secure on-device storage for health records and community feedback.
+
+- AI Models
+  - DistilBERT: Symptom checking, feedback analysis, and basic local-language translation support.
+  - MobileNet: Patient triage and outbreak prediction, optimized for basic mobile devices.
+  - Logistic Regression: Medicine inventory forecasting for clinics/stores.
+
+- SMS Integration
+  - Local SMS Gateway: Sends/receives SMS for health tips, chronic disease updates, and outbreak alerts.
+
+- Security
+  - AES‑256 Encryption: Protects patient data at rest; aligns with Ayushman Bharat regulations and good practice.
+
+- Offline Support
+  - Pre-trained AI models and data cached locally; background synchronization over 2G/3G when available.
+
+---
+
+## Architecture overview
+
+```
+[React Native App]
+  ├─ Voice/Text UI (STT/TTS, local languages)
+  ├─ Encrypted SQLite (SQLCipher or equivalent)
+  ├─ Pyodide (Python runtime in WebView/JS bridge)
+  │    ├─ DistilBERT → symptom/feedback/lang
+  │    ├─ MobileNet  → triage/outbreak risk
+  │    └─ LogisticReg→ inventory forecast
+  ├─ SMS Manager → Local SMS Gateway (HTTP/SMPP)
+  └─ Sync Service → cloud/doctor portal (when online)
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Getting started
 
-**Use GitHub Codespaces**
+Prerequisites
+- Node.js LTS and Yarn
+- Android Studio + Android SDK, Java 11
+- React Native CLI environment
+- Optional: access to a Local SMS Gateway (HTTP API)
+- Pretrained models downloaded to the app assets
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Install and run
+1) Install dependencies
+```
+yarn install
+```
 
-## What technologies are used for this project?
+2) Add models to app assets
+```
+app/assets/models/
+  ├─ distilbert/           # tokenizer + weights
+  ├─ mobilenet.tflite      # int8 quantized recommended
+  └─ inventory.joblib      # logistic regression model
+```
 
-This project is built with:
+3) Add Pyodide runtime
+```
+app/assets/pyodide/
+  ├─ pyodide.js
+  ├─ pyodide.wasm
+  └─ packages.json
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+4) Configure environment
+- Copy .env.example to .env and set:
+```
+SMS_GATEWAY_URL=http://<gateway-ip>:<port>/send
+```
+- The app generates an AES‑256 key on first run and stores it in Android Keystore.
 
-## How can I deploy this project?
+5) Run the app on Android
+```
+yarn android
+```
 
-Simply open [Lovable](https://lovable.dev/projects/3f412903-4ade-4ff4-8c07-5544afe0a8f6) and click on Share -> Publish.
+Supported languages
+- English, Hindi, Tamil to start; easily extendable via language packs and TTS/STT voices.
 
-## Can I connect a custom domain to my Lovable project?
+Performance tips
+- Use quantized models.
+- Warm up models on app start.
+- Pre-download TTS voices for offline use.
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## SMS setup
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- Outbound SMS: App calls the Local SMS Gateway HTTP endpoint:
+```
+POST ${SMS_GATEWAY_URL}
+{
+  "to": "+91XXXXXXXXXX",
+  "message": "Reminder: Diabetes check tomorrow at 10am. Reply 1 to confirm."
+}
+```
+
+- Inbound SMS: Configure gateway to POST callbacks to the app relay/server when online. The app can poll for pending inbound messages when connectivity returns.
+
+- Example patient flows (feature phones):
+  - “FEVER 2 DAYS” → auto triage reply + guidance.
+  - “BP CHECK” → schedules visit and sends prep tips.
+
+---
+
+## Data security and privacy
+
+- Encryption: AES‑256 for data at rest; HTTPS/TLS for any sync in transit.
+- Keys: Created per device, stored in Android Keystore (hardware-backed when available).
+- Data minimization: Store only what is needed; avoid diagnoses or personally identifiable info in SMS content.
+- Consent and audit: Capture consent in-app and keep local audit logs.
+- Compliance: Built to align with Ayushman Bharat data protection expectations. Production clinical use may require local regulatory approvals.
+
+---
+
+## Repository structure (suggested)
+
+```
+medi-spark/
+├─ app/                     # React Native app
+│  ├─ src/
+│  │  ├─ components/
+│  │  ├─ screens/
+│  │  ├─ services/
+│  │  │  ├─ tts-stt/
+│  │  │  ├─ sms/
+│  │  │  ├─ storage/
+│  │  │  └─ sync/
+│  │  ├─ i18n/
+│  │  └─ bridge/           # JS <-> Pyodide bridge
+│  ├─ assets/
+│  │  ├─ pyodide/
+│  │  └─ models/
+│  └─ android/
+├─ py/                      # Python code executed via Pyodide
+│  ├─ inference/
+│  └─ utils/
+├─ docs/
+│  └─ data-schema.sql
+└─ .env.example
+```
+
+---
+
+## Roadmap
+
+- Doctor web portal and secure sync server
+- More language packs (Marathi, Bengali, Telugu, etc.)
+- Offline outbreak dashboards for CHWs
+- Federated learning for safe on-device model updates
+
+---
+
+## Contributing
+
+Contributions are welcome! Please open an issue to discuss a change or submit a pull request. For major changes, start with a design proposal.
+
+
+---
+
+## Medical disclaimer
+
+MediSpark provides decision support and educational content. It is not a substitute for professional medical advice, diagnosis, treatment, or emergency care. Always seek the advice of qualified health providers.
